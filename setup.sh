@@ -289,10 +289,18 @@ echo "🔹 Importing Kestra workflows..."
 curl -X POST http://localhost:8080/api/v1/flows/import -F fileUpload=@new_01_gcp_kv.yaml
 curl -X POST http://localhost:8080/api/v1/flows/import -F fileUpload=@02_courses_enrollments_pipeline.yaml
 curl -X POST http://localhost:8080/api/v1/flows/import -F fileUpload=@03_formacode_pipeline.yaml
+curl -X POST http://localhost:8080/api/v1/flows/import -F fileUpload=@04_dbt_execution.yaml
 
 # Display URLs
 echo "✅ Setup Complete!"
 echo "📊 Visit Kestra: http://localhost:8080"
+echo "📊 Execute 01_gcp_kv"
+echo "📊 Update GCP_CREDS in KV Store"
+echo "📊 Execute 02_courses_enrollments_pipeline"
+echo "📊 Execute 03_formacode_pipeline. It will take ~45-50 mins"
+echo "📊 Verify source_tables in bigquery. It should have courses, enrollments, formacode"
+echo "📊 Execute 04_dbt_execution"
+echo "📊 You are ready to visualize."
 
 # Prompt for Terraform Destroy
 read -p "Press Enter to destroy the GCS bucket and BigQuery datasets (or Ctrl+C to skip)..."

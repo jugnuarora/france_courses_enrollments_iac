@@ -21,10 +21,20 @@ resource "google_bigquery_dataset" "source_tables" {
   dataset_id = var.bq_dataset_name1
   location   = var.region
 #  depends_on = [google_project_service.bigquery]
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [dataset_id]
+  }
 }
+
 
 resource "google_bigquery_dataset" "external" {
   dataset_id = var.bq_dataset_name2
   location   = var.region
 #  depends_on = [google_project_service.bigquery]
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [dataset_id]
+  }
 }
