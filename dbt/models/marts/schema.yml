@@ -1,5 +1,15 @@
 version: 2
 
+sources:
+
+  - name: staging
+    database: france-courses-enrollments
+    schema: source_tables
+
+    tables:
+      - name: formacode
+
+
 models:
   - name: fact_enrollments
     description: "Enrollments fact table having total number of enrollments, providers and certifications in a given month for a particular formacode along with the description of formacode and the field it belongs to."
