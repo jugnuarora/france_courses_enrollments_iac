@@ -295,11 +295,16 @@ curl -X POST http://localhost:8080/api/v1/flows/import -F fileUpload=@04_dbt_exe
 echo "✅ Setup Complete!"
 echo "📊 Visit Kestra: http://localhost:8080"
 echo "📊 Execute 01_gcp_kv"
+read -p "Execute 01_gcp_kv in Kestra and press enter once done..."
 echo "📊 Update GCP_CREDS in KV Store"
+read -p "Update GCP_CREDS in KV Store and press enter once done..."
 echo "📊 Execute 02_courses_enrollments_pipeline"
 echo "📊 Execute 03_formacode_pipeline. It will take ~45-50 mins"
+read -p "Execute 02_courses_enrollments_pipeline with input as courses. Also Execute 02_courses_enrollments_pipeline with input as enrollments. Also, execute 03_formacode_pipeline and press enter once done..."
 echo "📊 Verify source_tables in bigquery. It should have courses, enrollments, formacode"
+read -p "Verify source_tables in bigquery. It should have courses, enrollments, formacode and press enter once done..."
 echo "📊 Execute 04_dbt_execution"
+read -p "Execute 04_dbt_execution and press enter once done..."
 echo "📊 You are ready to visualize."
 
 # Prompt for Terraform Destroy

@@ -49,7 +49,7 @@ tasks:
     type: io.kestra.plugin.gcp.bigquery.LoadFromGcs
     from:
       - "{{render(vars.gcs_formacode_translated)}}/*.parquet"
-    destinationTable: "{{kv('GCP_DATASET')}}.source_tables.formacode"
+    destinationTable: "source_tables.formacode"
     format: PARQUET
     writeDisposition: WRITE_TRUNCATE
           

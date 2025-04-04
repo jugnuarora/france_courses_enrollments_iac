@@ -118,9 +118,40 @@ The [dashboard](https://lookerstudio.google.com/reporting/71ceb6ee-f472-4892-8e0
 
 ## Reproducibility
 
+### Automation (If you prefer manual, please scroll down.)
+
 **Prerequisites:**
 
-* GCP account with BigQuery and GCS enabled.
+* GCP project with billing enabled. Rest of the tasks like IAM roles assignment, bucket creation, dataset creation, kestra dockerization will be executed by the script.
+
+**Steps tp Run:**
+
+1. **Clone the Repository:**
+    ```bash
+    git clone git@github.com:jugnuarora/france_courses_enrollments.git
+    cd france_courses_enrollments
+    ```
+
+2. **In the terminal, execute ./setup.sh and follow the instructions**
+
+3. **Verify Data:**
+    * I prefer to reconcile my tables and thus created some local queries for it that can be run in BigQuery. Import the [local_queries.sql](/local_queries.sql).
+    * Execute Query 1, 4 and 10 to see the reconciliation table for courses.
+    * Execute Query 11, 14 and 20 to see the reconciliation table for enrollments.
+    * Execute Query 21 and 27 to see the reconciliation table for formacode. 
+    * run the provided sql queries (local_queries) to verify the data. The final tables should have the count as below:
+        . courses (Query 9) - ~195K records
+        . enrollments (Query 19) - ~181K records
+        . formacode (Query 26)- ~3379 records
+
+4. **Visualize in Dashboard:**
+    * You can access the visualization [here](https://lookerstudio.google.com/reporting/71ceb6ee-f472-4892-8e08-6689d9dbd42c).
+
+### Manual
+
+**Prerequisites:**
+
+* GCP account with Billing enabled.
 * Kestra instance running.
 * dbt Cloud account with BigQuery connection.
 * Service account keys for GCP authentication.
@@ -251,10 +282,14 @@ The [dashboard](https://lookerstudio.google.com/reporting/71ceb6ee-f472-4892-8e0
     - `04_enrollments_spark.py`- Python Script to modify column types in enrollments using spark and store it back in GCS data lake.
     - `05_formacode_download.py`- Python Script to get the selected columns from the selected file in zip folder for formacode.
     - `06_formacode_sparl_translation.py`- Python Script to execute pyspark for the translation of 2 columns. 
+* `secrets`- empty folder to store gcp credentials.
+* `terraform`- To fire up cloud resources and destroy once task is done.
 * `.gitignore` - To ensure that no sensitive information or any kind of data is uploaded to GitHub.
 * `01_gcp_kv.yaml`- KESTRA workflow for Kestra key value set-up
 * `02_courses_enrollments_pipeline.yaml`- KESTRA workflow to get the courses and enrollments data.
 * `03_formacode_pipeline-yaml`- KESTRA workflow to get the formacode data. 
+* `04_dbt_execution.yaml`- DBT project execution
 * `docker-compose.yml`- To run Kestra in docker container. 
 * `local_queries.sql`- SQL queries that can be used to verify the BigQuery tables.
 * `requirements.txt`- Required packages to execute the python scripts. 
+* `setup.sh`- To automate the Cloud set-up.
