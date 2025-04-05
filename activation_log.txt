@@ -1,0 +1,1 @@
+Activated service account credentials for: [french-courses-enrollments@project-de-zoomcamp-455821.iam.gserviceaccount.com]

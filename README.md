@@ -122,7 +122,7 @@ The [dashboard](https://lookerstudio.google.com/reporting/71ceb6ee-f472-4892-8e0
 
 **Prerequisites:**
 
-* GCP project with billing enabled. Rest of the tasks like IAM roles assignment, bucket creation, dataset creation, kestra dockerization will be executed by the script.
+* GCP project with billing enabled. Rest of the tasks like service account creation, IAM roles assignment, bucket creation, dataset creation, kestra dockerization will be executed by the script.
 
 **Steps tp Run:**
 

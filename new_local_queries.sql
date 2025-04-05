@@ -4,7 +4,7 @@
 CREATE OR REPLACE EXTERNAL TABLE `external.courses_raw`
 OPTIONS (
   format = 'parquet',
-  uris = ['gs://gcp_bucket_name_value/courses_enrol_data_todays_date/courses_raw_parquet/*.parquet'] -- change the date
+  uris = ['gs://jugnuarora-project-de-zoomcamp-455821/courses_enrol_data_2025_04_05/courses_raw_parquet/*.parquet'] -- change the date
 );
 
 select *
@@ -24,7 +24,7 @@ WHERE
 CREATE OR REPLACE EXTERNAL TABLE `external.courses_filtered`
 OPTIONS (
   format = 'parquet',
-  uris = ['gs://gcp_bucket_name_value/courses_enrol_data_todays_date/courses_filtered/*.parquet'] --change the date
+  uris = ['gs://jugnuarora-project-de-zoomcamp-455821/courses_enrol_data_2025_04_05/courses_filtered/*.parquet'] --change the date
 );
 
 select *
@@ -207,7 +207,7 @@ from
 CREATE OR REPLACE EXTERNAL TABLE `external.enrollments_raw`
 OPTIONS (
   format = 'parquet',
-  uris = ['gs://gcp_bucket_name_value/courses_enrol_data_todays_date/enrollments_raw_parquet/*.parquet'] -- change the date
+  uris = ['gs://jugnuarora-project-de-zoomcamp-455821/courses_enrol_data_2025_04_05/enrollments_raw_parquet/*.parquet'] -- change the date
 );
 
 select *
@@ -227,7 +227,7 @@ WHERE
 CREATE OR REPLACE EXTERNAL TABLE `external.enrollments_filtered`
 OPTIONS (
   format = 'parquet',
-  uris = ['gs://gcp_bucket_name_value/courses_enrol_data_todays_date/enrollments_filtered/*.parquet'] -- change the date
+  uris = ['gs://jugnuarora-project-de-zoomcamp-455821/courses_enrol_data_2025_04_05/enrollments_filtered/*.parquet'] -- change the date
 );
 
 select *
@@ -395,7 +395,7 @@ from
 CREATE OR REPLACE EXTERNAL TABLE `courses.formacode_translated`
 OPTIONS (
   format = 'parquet',
-  uris = ['gs://gcp_bucket_name_value/formacode_translated/*.parquet']
+  uris = ['gs://jugnuarora-project-de-zoomcamp-455821/formacode_translated/*.parquet']
 );
 
 select *

@@ -10,62 +10,15 @@ docker rm kestra 2>/dev/null
 
 gcloud auth revoke --all
 
-# ✅ Fix permissions on the host machine (Linux/macOS only)
-echo "🔹 Fixing permissions for airflow/dags/dbt..."
-mkdir -p dbt  # Ensure the folder exists
-
-# Detect OS type
-OS_TYPE=$(uname -s)
-
-if [[ "$OS_TYPE" == "Darwin" ]]; then
-    # macOS: Use `id -gn` to get the group name
-    PRIMARY_GROUP=$(id -gn)
-    chown -R $(whoami):$PRIMARY_GROUP dbt
-    chmod -R 775 dbt
-
-    mkdir -p dbt/logs
-    chown -R $(whoami):$PRIMARY_GROUP dbt/logs
-    chmod -R 777 dbt/logs
-
-elif [[ "$OS_TYPE" == "Linux" ]]; then
-    # Linux: Use `id -g` to get the group ID
-    PRIMARY_GROUP=$(id -g)
-    chown -R $(whoami):$PRIMARY_GROUP dbt
-    chmod -R 775 dbt
-
-    mkdir -p dbt/logs
-    chown -R $(whoami):$PRIMARY_GROUP dbt/logs
-    chmod -R 777 dbt/logs
-
-elif [[ "$OS_TYPE" == "MINGW64_NT"* || "$OS_TYPE" == "CYGWIN_NT"* || "$OS_TYPE" == "MSYS_NT"* ]]; then
-    # Windows (Git Bash, WSL, Cygwin, or MSYS)
-    echo "🛑 Skipping permission changes on Windows (chown not supported)."
-else
-    echo "⚠ Unknown OS: $OS_TYPE - Skipping permission changes."
-fi
-
-echo "✅ Permissions set for dbt and dbt/logs (if applicable)."
-
+TODAY=$(date +%Y_%m_%d)
 
 # Ensure script runs in its directory
 SCRIPT_DIR=$(dirname "$0")
 cd "$SCRIPT_DIR" || exit
 
-# Create & Write Environment Variables
-echo "🔹 Creating .env file..."
-rm -f .env
-cat > .env <<EOL
-GCP_PROJECT_ID=$GCP_PROJECT_ID
 GCP_LOCATION=europe-west1
-#KESTRA_API_URL=http://localhost:8080/api/v1
-#KESTRA_NAMESPACE=france-courses-enrollments-t
-BIGQUERY_SOURCE_DATASET=source_tables
-BIGQUERY_EXTERNAL_DATASET=external
-#DBT_CLOUD_ACCOUNT=france-market-research
-#DBT_CLOUD_PROJECT=france-courses-enrollments # Replace with your dbt project
-EOL
 
-echo "✅ .env file created successfully."
+#echo "✅ .env file created successfully."
 
 # Create secrets folder
 mkdir -p secrets
@@ -112,7 +65,6 @@ done
 
 # Set the project
 gcloud config set project $GCP_PROJECT_ID
-echo "GCP_PROJECT_ID=$GCP_PROJECT_ID" >> .env
 
 # Check Billing
 echo "🔹 Checking if billing is enabled..."
@@ -214,19 +166,6 @@ fi
 
 echo "✅ GCP authentication complete."
 
-# Store service account credentials path in .env
-echo "GOOGLE_APPLICATION_CREDENTIALS=$KEY_FILE_PATH" >> .env
-echo "SERVICE_ACCOUNT_EMAIL=$SERVICE_ACCOUNT_EMAIL" >> .env
-
-# ✅ Load and Export Variables
-export $(grep -v '^#' .env | xargs)
-
-# Ensure required variables are set
-if [ -z "$SERVICE_ACCOUNT_EMAIL" ] || [ -z "$GCP_PROJECT_ID" ]; then
-    echo "❌ Required variables are missing. Exiting..."
-    exit 1
-fi
-
 # 7️⃣ Deploy Infrastructure with Terraform
 echo "🔹 Deploying infrastructure with Terraform..."
 cd terraform
@@ -248,15 +187,6 @@ echo "✅ Terraform deployment complete."
 GCP_BUCKET_NAME=$(terraform output -raw bucket_name)
 GCP_CREDS_JSON=$(terraform output -json GCP_CREDS | jq -r tostring)
 
-# ✅ Ensure `GCS_BUCKET` is added to `.env`
-if grep -q "^GCS_BUCKET=" ../.env; then
-    sed -i "s|^GCS_BUCKET=.*|GCS_BUCKET=$GCS_BUCKET_NAME|" ../.env
-else
-    echo "GCS_BUCKET=$GCS_BUCKET_NAME" >> ../.env
-fi
-
-echo "✅ GCS_BUCKET added to .env: $GCS_BUCKET_NAME"
-
 cd ..
 
 # Echo the variables before sed commands
@@ -273,6 +203,11 @@ echo "🔹 Replacing placeholders in 01_gcp_kv.yaml..."
 sed "s|gcp_project_id_value|$GCP_PROJECT_ID|g" 01_gcp_kv.yaml > new_01_gcp_kv.yaml
 sed "s|gcp_location_value|$GCP_LOCATION|g" new_01_gcp_kv.yaml > temp.yaml && mv temp.yaml new_01_gcp_kv.yaml
 sed "s|gcp_bucket_name_value|$GCP_BUCKET_NAME|g" new_01_gcp_kv.yaml > temp.yaml && mv temp.yaml new_01_gcp_kv.yaml
+
+# Replace Placeholders in local_queries.sql
+echo "🔹 Replacing placeholders in local_queries.sql..."
+sed "s|gcp_bucket_name_value|$GCP_BUCKET_NAME|g" local_queries.sql > temp.yaml && mv temp.yaml new_local_queries.sql
+sed "s|todays_date|$TODAY|g" new_local_queries.sql > temp.yaml && mv temp.yaml new_local_queries.sql
 
 # 8️⃣ Start Docker & Kestra
 echo "🔹 Starting Docker services... THIS WILL TAKE SOMETIME!"
@@ -293,16 +228,16 @@ curl -X POST http://localhost:8080/api/v1/flows/import -F fileUpload=@04_dbt_exe
 
 # Display URLs
 echo "✅ Setup Complete!"
-echo "📊 Visit Kestra: http://localhost:8080"
-echo "📊 Execute 01_gcp_kv"
-read -p "Execute 01_gcp_kv in Kestra and press enter once done..."
-echo "📊 Update GCP_CREDS in KV Store"
-read -p "Update GCP_CREDS in KV Store and press enter once done..."
-echo "📊 Execute 02_courses_enrollments_pipeline"
-echo "📊 Execute 03_formacode_pipeline. It will take ~45-50 mins"
-read -p "Execute 02_courses_enrollments_pipeline with input as courses. Also Execute 02_courses_enrollments_pipeline with input as enrollments. Also, execute 03_formacode_pipeline and press enter once done..."
-echo "📊 Verify source_tables in bigquery. It should have courses, enrollments, formacode"
-read -p "Verify source_tables in bigquery. It should have courses, enrollments, formacode and press enter once done..."
+echo "📊 Visit Kestra: http://localhost:8080 and the namespace is france-courses-enrollments. Go to Flows."
+read -p "📊 Execute 01_gcp_kv in Kestra and press enter once done..."
+echo "📊 Update GCP_CREDS in KV Store of the same namespace. Your key would have been downloaded in secrets folder of this repo. You can copy paste the contents from it."
+read -p "Press enter once done..."
+read -p "📊 This can be done simultaneously:
+    a) Execute 02_courses_enrollments_pipeline with input as courses. 
+    b) Execute 02_courses_enrollments_pipeline with input as enrollments. 
+    c) Execute 03_formacode_pipeline. It will take ~45-50 mins
+    and press enter once done..."
+read -p "📊 Verify source_tables in bigquery. It should have courses, enrollments, formacode. You can copy the queries from new_local_queries.sql to local queries in bigquery and run the reconciliation steps mentioned in manual set-up of README. Press enter once done..."
 echo "📊 Execute 04_dbt_execution"
 read -p "Execute 04_dbt_execution and press enter once done..."
 echo "📊 You are ready to visualize."
@@ -314,6 +249,15 @@ read -p "Press Enter to destroy the GCS bucket and BigQuery datasets (or Ctrl+C 
 echo "🔹 Deleting the new_01_gcp_kv.yaml file..."
 rm -f new_01_gcp_kv.yaml
 echo "✅ new_01_gcp_kv.yaml deleted."
+
+# Delete the new_local_queries.sql file
+echo "🔹 Deleting the new_local_queries.sql file..."
+rm -f new_local_queries.sql
+echo "✅ new_local_queries.sql deleted."
+
+#Docker compose down
+echo "🔹 Stoping Docker services... THIS WILL TAKE SOMETIME!"
+docker-compose down
 
 # Destroy Terraform Resources
 echo "🔹 Destroying Terraform resources..."
